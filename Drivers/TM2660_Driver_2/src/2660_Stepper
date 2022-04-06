@@ -1,0 +1,193 @@
+/*Define TMC2660 object type*/
+typedef struct TMC2660Object {
+float microStep; //Microstep setting
+float stepAngle; //Inherent step angle
+float frequency; //running frequency
+uint16_t *pStartStop; //Start and stop operation command
+uint16_t *pDirection; //Direction control
+uint16_t *pRotateSet; //Rotate speed setting
+uint16_t *pMotorState; //motor state
+ 
+uint32_t status; //TMC communication return status
+uint32_t Register[5]; //register
+void (*WriteRead)(uint8_t *wData,uint16_t wSize,uint8_t *rData,uint16_t rSize);
+void (*ChipSelcet)(TMC2660CSType cs); //Chip select signal
+void (*StartStop)(TMC2660SSType ss); //Start and stop operation function
+void (*Direct)(TMC2660DIRType dir); //Direction operation function
+void (*Enable)(TMC2660ENNType enn); //Enable operation function
+
+CurveObjectType curve; //Motor speed regulation curve
+}TMC2660ObjectType;
+
+/*Initialize TMC2660 object*/
+void Tmc2660Initialization(TMC2660ObjectType *tmc, //The TMC object variable to be initialized
+TMC2660SdoffType interface, //Driver interface type
+TMC2660MicroStepType microStep, //Microstep setting
+uint16_t Power, //current range
+uint16_t stepAngle, //Inherent step angle
+uint16_t *pStartStop, //Start and stop operation command
+uint16_t *pDirection, //direction control
+uint16_t *pRotateSet, //Rotate speed setting
+uint16_t *pMotorState, //motor state
+TMC2660WriteReadType writeRead, //Read and write function pointer
+TMC2660ChipSelcetType cs, //Chip select operation function pointer
+TMC2660StartStopType startStop, //Start and stop operation function pointer
+TMC2660DirectType direct, //Direction setting function pointer
+TMC2660EnableType enable //Enable control function pointer
+)
+{
+uint32_t MicroStep[9]={0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00};
+uint16_t MicroStepNum[9]={1,2,4,8,16,32,64,128,256};
+ 
+if((tmc==NULL)||(writeRead==NULL)||(cs==NULL)||(enable==NULL))
+{
+return;
+}
+ 
+tmc->WriteRead=writeRead;
+tmc->ChipSelcet=cs;
+tmc->StartStop=startStop;
+tmc->Direct=direct;
+tmc->Enable=enable;
+ 
+tmc->pStartStop=pStartStop;
+tmc->pDirection=pDirection;
+tmc->pRotateSet=pRotateSet;
+tmc->pMotorState=pMotorState;
+ 
+tmc->microStep=MicroStepNum[microStep];
+tmc->stepAngle=(float)stepAngle/10.0;
+ 
+tmc->curve.stepSpeed=0.02;
+tmc->curve.currentSpeed=0;
+tmc->curve.startSpeed=0;
+tmc->curve.speedMax=300;
+tmc->curve.speedMin=1.0;
+tmc->curve.curveMode=CURVE_SPTA;
+tmc->curve.flexible=10.0;
+
+tmc->Register[Reg_DRVCTRL]=DRVCTRL;
+tmc->Register[Reg_CHOPCONF]=CHOPCONF;
+tmc->Register[Reg_SMARTEN]=SMARTEN;
+tmc->Register[Reg_SGCCONF]=SGCCONF;
+tmc->Register[Reg_DRVCONF]=DRVCONF;
+ 
+tmc->Register[Reg_CHOPCONF]=tmc->Register[Reg_CHOPCONF]|0x1B1;
+tmc->Register[Reg_SMARTEN]=tmc->Register[Reg_SMARTEN]|0x202;
+tmc->Register[Reg_SGCCONF]=tmc->Register[Reg_SGCCONF]|0x10000;
+ 
+WriteReadTmc2660Register(tmc,Reg_CHOPCONF);
+WriteReadTmc2660Register(tmc,Reg_SGCCONF);
+ 
+if(interface==TMC2660_SPI)
+{
+tmc->Register[Reg_DRVCONF]=tmc->Register[Reg_DRVCONF]|0xA190;
+WriteReadTmc2660Register(tmc,Reg_DRVCONF);
+}
+else
+{
+tmc->Register[Reg_DRVCONF]=tmc->Register[Reg_DRVCONF]|0xA140;
+WriteReadTmc2660Register(tmc,Reg_DRVCONF);
+ 
+tmc->Register[Reg_DRVCTRL]=tmc->Register[Reg_DRVCTRL]|0x100|MicroStep[microStep];
+WriteReadTmc2660Register(tmc,Reg_DRVCTRL);
+}
+ 
+WriteReadTmc2660Register(tmc,Reg_SMARTEN);
+ 
+SetMotorPower(tmc,Power);
+}
+/*Read and write registers*/
+static void WriteReadTmc2660Register(TMC2660ObjectType *tmc,TMC2660RegType reg)
+{
+uint8_t wData[3];
+uint8_t rData[3];
+uint32_t status=0;
+uint32_t regValue;
+ 
+tmc->ChipSelcet(TMC2660CS_Enable);
+ 
+regValue=tmc->Register[reg]&0xFFFFF;
+wData[0]=(uint8_t)(regValue>>16);
+wData[1]=(uint8_t)(regValue>>8);
+wData[2]=(uint8_t)regValue;
+ 
+tmc->WriteRead(wData,3,rData,3);
+ 
+status=rData[0];
+status=(status<<8)+rData[1];
+status=(status<<8)+rData[2];
+ 
+tmc->status= status;
+ 
+tmc->ChipSelcet(TMC2660CS_Disable);
+}
+
+typedef void (*TMC2660WriteReadType)(uint8_t *wData,uint16_t wSize,uint8_t *rData,uint16_t rSize);
+typedef void (*TMC2660ChipSelcetType)(TMC2660CSType cs); //Chip select signal
+typedef void (*TMC2660StartStopType)(TMC2660SSType ss); //Start and stop operation function
+typedef void (*TMC2660DirectType)(TMC2660DIRType dir); //Direction operation function
+typedef void (*TMC2660EnableType)(TMC2660ENNType enn); //Enable operation function
+
+
+/*TMC2660 chip select operation function*/
+static void TMC2660ChipSelcet(TMC2660CSType cs)
+{
+if(cs==TMC2660CS_Enable)
+{
+TMC_CSN_ENABLE();
+}
+else
+{
+TMC_CSN_DISABLE();
+}
+}
+
+/*Start and stop operation function*/
+static void MotorStartStop(TMC2660SSType ss)
+{
+if(ss==TMC2660SS_Start)
+{
+if(HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3) != HAL_OK)
+{
+}
+}
+else
+{
+if(HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3) != HAL_OK)
+{
+}
+}
+}
+
+/*Direction operation function*/
+static void MotorDirect(TMC2660DIRType dir)
+{
+if(dir==TMC2660DIR_CCW)
+{
+TMC_DIR_DISABLE();
+}
+else
+{
+TMC_DIR_ENABLE();
+}
+}
+
+/*Enable operation function*/
+static void TMC2660Enable(TMC2660ENNType enn)
+{
+if(enn==TMC2660ENN_Enable)
+{
+TMC_ENN_ENABLE();
+}
+else
+{
+TMC_ENN_DISABLE();
+}
+}
+
+/* Read and write data through the SPI2 port */
+static void WriteReadBySPI2(uint8_t *wData,uint16_t wSize,uint8_t *rData,uint16_t rSize)
+{
+HAL_SPI_TransmitReceive (&hspi2, wData, rData, wSize, 1000);
+}

@@ -1,0 +1,7 @@
+{
+    "google-translate.firstLanguage": "english",
+    "files.associations": {
+        "tmc2660_constants.h": "c",
+        "2660_stepper": "c"
+    }
+}

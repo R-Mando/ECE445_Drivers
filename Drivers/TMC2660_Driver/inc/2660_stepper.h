@@ -22,8 +22,21 @@ typedef struct TMC2660Object
     void (*Enable)(bool enn);   //Enable operation function
 
     CurveObjectType curve; //Motor speed regulation curve
-
+    tmc->ChipSelect(cs_value)
 } TMC2660ObjectType;
+
+
+typedef struct CurveObject
+{
+    float stepSpeed;
+    float currentSpeed;
+    float startSpeed;
+    float speedMax;
+    float speedMin;
+    float curveMode;
+    float flexible;
+
+} CurveObjectType;
 
 const int32_t tmc2660_defaultRegisterResetState[TMC2660_REGISTER_COUNT] =
 {

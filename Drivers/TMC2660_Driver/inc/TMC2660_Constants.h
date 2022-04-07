@@ -31,5 +31,6 @@
 #define TMC2660SS_Start 1
 #define TMC2660DIR_CCW 0
 #define TMC2660ENN_Enable 1
+#define TMC2660_SPI 1
 
 #endif /* TMC_IC_TMC2660_TMC2660_CONSTANTS_H_ */

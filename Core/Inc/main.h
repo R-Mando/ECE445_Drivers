@@ -28,6 +28,12 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "2660_stepper.h"
+// #include "2660_stepper.c"
+#include "TMC2660_Register.h"
+//#include "../Drivers/TMC2660_Driver/Inc/2660_stepper.h"
+//#include "..\..\Drivers\TMC2660_Driver\Inc\2660_stepper.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

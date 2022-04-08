@@ -2,31 +2,31 @@
 #define TMC_2660_REG_BITFIELDS_H_
 #include "Types.h"
 
-typedef struct DRVCTRL_1{
-  //const static uint8_t address = 0b00;
-  union {
-    uint32_t sr;
-    struct {
-      uint8_t cb : 8;
-      bool phb : 1;
-      uint8_t ca : 8;
-      bool pha : 1;
-    }bf_DRV_1 __attribute__((packed));
-  };
-}DRVCTRL_1_t;
-
-typedef struct DRVCTRL_0 {
-  //const static uint8_t address = 0b00;
-  union {
-    uint32_t sr;
-    struct {
-      uint8_t mres : 4;
-      uint8_t : 4;
-      bool dedge : 1;
-      bool intpol : 1;
-    };
-  };
-}DRVCTRL_0_t;
+//typedef struct DRVCTRL_1{
+//  //const static uint8_t address = 0b00;
+//  union {
+//    uint32_t sr;
+//    struct {
+//      uint8_t cb : 8;
+//      bool phb : 1;
+//      uint8_t ca : 8;
+//      bool pha : 1;
+//    }bf_DRV_1 __attribute__((packed));
+//  };
+//}DRVCTRL_1_t;
+//
+//typedef struct DRVCTRL_0 {
+//  //const static uint8_t address = 0b00;
+//  union {
+//    uint32_t sr;
+//    struct {
+//      uint8_t mres : 4;
+//      uint8_t : 4;
+//      bool dedge : 1;
+//      bool intpol : 1;
+//    };
+//  };
+//}DRVCTRL_0_t;
 
 // namespace TMC2660_n {
 //   struct CHOPCONF_t {

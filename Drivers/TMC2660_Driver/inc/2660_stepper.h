@@ -1,7 +1,7 @@
 #ifndef TMC_2660_STEPPER_H_
 #define TMC_2660_STEPPER_H_
 #include "Types.h"
-
+#include "TMC2660_Constants.h"
 
 /*Define TMC2660 object type*/
 typedef struct CurveObject
@@ -28,13 +28,16 @@ typedef struct TMC2660Object
 
     uint32_t status;      //TMC communication return status
     uint32_t Register[5]; //register
-    void (*WriteRead)(uint8_t *wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
-    void (*ChipSelect)(bool cs); //Chip select signal
-    //same as void ChipSelect(bool cs)
-    void (*StartStop)(bool ss);  //Start and stop operation function
-    void (*Direct)(bool dir);   //Direction operation function
-    void (*Enable)(bool enn);   //Enable operation function
-
+    // void (*WriteRead)(uint8_t *wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
+    // void (*ChipSelect)(bool cs); //Chip select signal
+    // //same as void ChipSelect(bool cs)
+    // void (*StartStop)(bool ss);  //Start and stop operation function
+    // void (*Direct)(bool dir);   //Direction operation function
+    // void (*Enable)(bool enn);   //Enable operation function
+    bool cs;
+    bool ss;
+    bool dir;
+    bool enn;
     CurveObjectType curve; //Motor speed regulation curve
 
 } TMC2660ObjectType;
@@ -56,32 +59,18 @@ typedef struct TMC2660Object
 //     DRVCONF;
 // } TMC26660RegType;
 /*Initialize TMC2660 object*/
-void Tmc2660Initialization(TMC2660ObjectType *tmc,       //The TMC object variable to be initialized
-                        bool interface, //Driver interface type
-                        int microStep, //Microstep setting
-                        uint16_t Power, //current range
-                        uint16_t stepAngle, //Inherent step angle
-                        uint16_t *pStartStop, //Start and stop operation command
-                        uint16_t *pDirection, //direction control
-                        uint16_t *pRotateSet, //Rotate speed setting
-                        uint16_t *pMotorState //motor state
-                        //TMC2660WriteReadType writeRead, //Read and write function pointer
-                        //TMC2660ChipSelectType cs, //Chip select operation function pointer
-                        //TMC2660StartStopType startStop, //Start and stop operation function pointer
-                        //TMC2660DirectType direct, //Direction setting function pointer
-                        //TMC2660EnableType enable, //Enable control function pointer
-                       );
+extern void Tmc2660Initialization(TMC2660ObjectType *tmc, bool interface, int microStep, uint16_t Power, uint16_t stepAngle, uint16_t *pStartStop, uint16_t *pDirection, uint16_t *pRotateSet, uint16_t *pMotorState);
 
-static void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg);
-//void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
-//static void ChipSelect(bool cs);
+extern void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg);
+void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
+void ChipSelect(TMC2660ObjectType *tmc);
 void TMC_CSN_ENABLE();
 void TMC_CSN_DISABLE();
-static void StartStop(bool ss);
-static void Direct(bool dir);
+static void StartStop(TMC2660ObjectType *tmc);
+static void Direct(TMC2660ObjectType *tmc);
 void TMC_DIR_ENABLE();
 void TMC_DIR_DISABLE();
-static void Enable(bool enn);
+static void Enable(TMC2660ObjectType *tmc);
 void TMC_ENN_ENABLE();
 void TMC_ENN_DISABLE();
 #endif /* TMC_2660_STEPPER_H_*/

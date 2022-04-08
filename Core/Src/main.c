@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+//#include "2660_stepper.c"
 //#include <TMCStepper.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -57,12 +58,16 @@ static void MX_SPI3_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
-
+TMC2660ObjectType *tmc;
+uint16_t *pStartStop; 
+uint16_t *pDirection; 
+uint16_t *pRotateSet;
+uint16_t *pMotorState;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+//Tmc2660Initialization(tmc,1, 5, 5, 5, pStartStop, pDirection, pRotateSet, pMotorState);
 /* USER CODE END 0 */
 
 /**
@@ -72,23 +77,22 @@ static void MX_TIM4_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
-
+  //Tmc2660Initialization(tmc,1, 5, 5, 5, pStartStop, pDirection, pRotateSet, pMotorState);
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  Tmc2660Initialization(tmc,1, 5, 5, 5, pStartStop, pDirection, pRotateSet, pMotorState);
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  //Tmc2660Initialization(tmc,1, 5, 5, 5, pStartStop, pDirection, pRotateSet, pMotorState);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -97,22 +101,8 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM1_Init();
   MX_TIM4_Init();
-  Tmc2660Initialization(&tmc,
-                          TMC2660_SD,
-                          MicroStep_256,
-                          aPara.phyPara.sm42PowerRange,
-                          aPara.phyPara.sm42StepAngle,
-                          &aPara.phyPara.sm42StartStop,
-                          &aPara.phyPara.sm42Direction,
-                          &aPara.phyPara.sm42RotateSet,
-                          &aPara.phyPara.sm42RunStatus,
-                          WriteReadBySPI2,
-                          TMC2660ChipSelcet,
-                          MotorStartStop,
-                          MotorDirect,
-                          TMC2660Enable
-                            );
-  /* USER CODE BEGIN 2 */
+  /* USER CODE BEGIN 2 */ 
+//  Tmc2660Initialization(tmc,1, 5, 5, 5, pStartStop, pDirection, pRotateSet, pMotorState);
 
   TIM1->CCR4 = 4; //set duty cycle of tim1 ch4
   TIM4->CCR1 = 2; //set duty cycle of tim4 ch1

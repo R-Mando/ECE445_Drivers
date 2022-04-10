@@ -28,6 +28,9 @@
 typedef float float32_t;
 typedef double float64_t;
 
+#define FALSE 0
+#define TRUE 1
+
 #ifndef TMC_TYPES_INTEGERS_UNSIGNED
 #define TMC_TYPES_INTEGERS_UNSIGNED
 

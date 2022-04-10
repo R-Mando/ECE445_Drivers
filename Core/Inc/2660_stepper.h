@@ -2,6 +2,7 @@
 #define TMC_2660_STEPPER_H_
 #include "Types.h"
 #include "TMC2660_Constants.h"
+#include "stm32f4xx.h"
 
 /*Define TMC2660 object type*/
 typedef struct CurveObject
@@ -66,11 +67,19 @@ void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
 void ChipSelect(TMC2660ObjectType *tmc);
 void TMC_CSN_ENABLE();
 void TMC_CSN_DISABLE();
-static void StartStop(TMC2660ObjectType *tmc);
-static void Direct(TMC2660ObjectType *tmc);
-void TMC_DIR_ENABLE();
-void TMC_DIR_DISABLE();
-static void Enable(TMC2660ObjectType *tmc);
-void TMC_ENN_ENABLE();
-void TMC_ENN_DISABLE();
+//static void StartStop(TMC2660ObjectType *tmc);
+//static void Direct(TMC2660ObjectType *tmc);
+//void TMC_DIR_ENABLE();
+//void TMC_DIR_DISABLE();
+//static void Enable(TMC2660ObjectType *tmc);
+//void TMC_ENN_ENABLE();
+//void TMC_ENN_DISABLE();
+// void spi_motor_test(TMC2660ObjectType *tmc);
+
+void spi_motor_zero(TMC2660ObjectType *tmc);
+
+void max_coil_a(TMC2660ObjectType *tmc);
+
+void max_coil_b(TMC2660ObjectType *tmc);
+
 #endif /* TMC_2660_STEPPER_H_*/

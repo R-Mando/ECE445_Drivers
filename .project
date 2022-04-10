@@ -29,16 +29,4 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>Inc</name>
-			<type>2</type>
-			<location>C:/Users/arode/STM32CubeIDE/workspace_1.9.0/PoE_Stepper/Drivers/TMC2660_Driver/Inc</location>
-		</link>
-		<link>
-			<name>Src</name>
-			<type>2</type>
-			<location>C:/Users/arode/STM32CubeIDE/workspace_1.9.0/PoE_Stepper/Drivers/TMC2660_Driver/Src</location>
-		</link>
-	</linkedResources>
 </projectDescription>

@@ -3,11 +3,13 @@
 
 // addresses out auf address bits from write datagrams
 #define REG_DRVCTRL   0x00
-#define REG_CHOPCONF  0x01
-#define REG_SMARTEN   0x02
-#define REG_SGCSCONF  0x03
-#define REG_DRVCONF   0x04
+#define REG_CHOPCONF  0x04
+#define REG_SMARTEN   0x05
+#define REG_SGCSCONF  0x06
+#define REG_DRVCONF   0x07
 
+#define TMC2660_DRVCTRL_VAL_MASK    (0x0001FFFF)
+#define TMC2660_DATAGRAM_MASK       (0xFFFFF)
 #define TMC2660_DRVCTRL_SDOFF_MASK  (0xFFFFF)
 #define TMC2660_DRVCTRL_MASK        (0xFFFFF & ~((0x0F<<4) | (0x7F <<10)))
 #define TMC2660_CHOPCONF_MASK       (0xFFFFF)

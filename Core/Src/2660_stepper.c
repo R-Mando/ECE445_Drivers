@@ -12,9 +12,9 @@
 //UART_HandleTypeDef huart2;
 //TIM_HandleTypeDef htim1;
 //HAL_StatusTypeDef hal_status;
+int j;
 
-
-int32_t tmc2660_defaultRegisterResetState[TMC2660_REGISTER_COUNT] =
+uint32_t tmc2660_defaultRegisterResetState[TMC2660_REGISTER_COUNT] =
 {
 	0x00000000,  // 0: DRVCTRL      000
     0x00000000,  // 1: UNUSED       001
@@ -35,7 +35,9 @@ void Tmc2660Initialization(TMC2660ObjectType *tmc,       //The TMC object variab
                        uint16_t *pStartStop, //Start and stop operation command
                        uint16_t *pDirection, //direction control
                        uint16_t *pRotateSet, //Rotate speed setting
-                       uint16_t *pMotorState //motor state
+                       uint16_t *pMotorState, //motor state
+                       SPI_HandleTypeDef *hspi3,
+                       UART_HandleTypeDef *huart1
                        //TMC2660WriteReadType writeRead, //Read and write function pointer
                        //TMC2660ChipSelectType cs, //Chip select operation function pointer
                        //TMC2660StartStopType startStop, //Start and stop operation function pointer
@@ -85,25 +87,38 @@ void Tmc2660Initialization(TMC2660ObjectType *tmc,       //The TMC object variab
    tmc->Register[REG_SMARTEN]=tmc->Register[REG_SMARTEN]|0x202;
    tmc->Register[REG_SGCSCONF]=tmc->Register[REG_SGCSCONF]|0x10000;
 
-   WriteReadTmc2660Register(tmc,REG_CHOPCONF);
-   WriteReadTmc2660Register(tmc,REG_SGCSCONF);
-
+   WriteReadTmc2660Register(tmc,REG_CHOPCONF, hspi3, huart1);
+   WriteReadTmc2660Register(tmc,REG_SGCSCONF, hspi3, huart1);
    if(interface==TMC2660_SPI)
    {
-       tmc->Register[REG_DRVCONF]=tmc->Register[REG_DRVCONF]|0xA190;
-       WriteReadTmc2660Register(tmc,REG_DRVCONF);
-       HAL_Delay(100);
+        //int j;
+        //char MSG[100] = {'\0'};
+        //uint32_t drvconf_reg_val = tmc->Register[REG_DRVCONF];
+        //j = sprintf(MSG, "VAL BEFORE:%lu\r\n", (long int)drvconf_reg_val);
+        //HAL_UART_Transmit(&(*huart1), (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+        tmc->Register[REG_DRVCONF]=tmc->Register[REG_DRVCONF]|0xA190;
+        WriteReadTmc2660Register(tmc,REG_DRVCONF, hspi3, huart1);
+        //uint32_t drvconf_reg_val_after = tmc->Register[REG_DRVCONF];
+        //j += sprintf(MSG+j, "VAL AFTER:%lu\r\n", (long int)drvconf_reg_val_after);
+        //HAL_UART_Transmit(&(*huart1), (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+        HAL_Delay(100);
    }
    else
    {
-       tmc->Register[REG_DRVCONF]=tmc->Register[REG_DRVCONF]|0xA140;
-       WriteReadTmc2660Register(tmc,REG_DRVCONF);
-
-       tmc->Register[REG_DRVCTRL]=tmc->Register[REG_DRVCTRL]|0x100|MicroStep[microStep];
-       WriteReadTmc2660Register(tmc,REG_DRVCTRL);
+		//int j;
+	    char MSG[100] = {'\0'};
+		//uint32_t drvconf_reg_val = tmc->Register[REG_DRVCONF];
+		j += sprintf(MSG+j, "VAL IN INIT BEFORE:%lu\r\n",tmc->Register[REG_DRVCONF]);
+        tmc->Register[REG_DRVCONF]=tmc->Register[REG_DRVCONF]|0xA140;
+        WriteReadTmc2660Register(tmc,REG_DRVCONF, hspi3, huart1);
+        j+= sprintf(MSG+j, "VAL IN INIT AFTER:%lu\r\n",tmc->Register[REG_DRVCONF]);
+        tmc->Register[REG_DRVCTRL]=tmc->Register[REG_DRVCTRL]|0x100|MicroStep[microStep];
+        WriteReadTmc2660Register(tmc,REG_DRVCTRL, hspi3, huart1);
+        j+= sprintf(MSG+j, "DRV CTRL AFTER:%lu\r\n", tmc->Register[REG_DRVCTRL]);
+        HAL_UART_Transmit(&(*huart1), (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
    }
 
-   WriteReadTmc2660Register(tmc,REG_SMARTEN);
+   WriteReadTmc2660Register(tmc, REG_SMARTEN, hspi3, huart1);
 
    //SetMotorPower(tmc,Power);
 }
@@ -114,26 +129,52 @@ void Tmc2660Initialization(TMC2660ObjectType *tmc,       //The TMC object variab
 // typedef void (*TMC2660DirectType)(TMC2660DIRType dir); //Direction operation function
 // typedef void (*TMC2660EnableType)(TMC2660ENNType enn); //Enable operation function
 
-void spi_motor_zero(TMC2660ObjectType *tmc){
+void spi_motor_zero(TMC2660ObjectType *tmc, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1){
     tmc->Register[REG_DRVCTRL]= 0x00000;
-    WriteReadTmc2660Register(tmc,REG_DRVCTRL);
+    WriteReadTmc2660Register(tmc,REG_DRVCTRL, hspi3, huart1);
 }
 
 
-void max_coil_a(TMC2660ObjectType *tmc){
-    tmc->Register[REG_DRVCTRL] = 0x3FE00;
-    WriteReadTmc2660Register(tmc,REG_DRVCTRL);
+void max_coil_a(TMC2660ObjectType *tmc, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1){
+	//int i;
+	char MSG[500] = {'\0'};
+	j += sprintf(MSG+j, "VAL DRVCTRL BEFORE:%lx\r\n", tmc->Register[REG_DRVCTRL]);
+    tmc->Register[REG_DRVCTRL] = 0x0003FE00;
+    j += sprintf(MSG+j, "VAL DRVCTRL AFTER:0x%08lX\r\n", (uint32_t)tmcRegister[REG_DRVCTRL]);
+    j += sprintf(MSG+j, "VAL REG_CHOPCONF:0x%08lX\r\n",  (uint32_t)tmc->Register[REG_CHOPCONF]);
+    j += sprintf(MSG+j, "VAL REG_SMARTEN:0x%08lX\r\n",  (uint32_t)tmc->Register[REG_SMARTEN]);
+    j += sprintf(MSG+j, "VAL REG_SGCSCONF:0x%08lX\r\n", (uint32_t)tmc->Register[REG_SGCSCONF]);
+    j += sprintf(MSG+j, "VAL REG_DRVCONF:0x%08lX\r\n", (uint32_t)tmc->Register[REG_DRVCONF]);
+    tmc.Register[REG_DRVCTRL] = 0x0003FE00;
+    tmc->Register[REG_CHOPCONF] = 0x0003FE00;
+    tmc->Register[REG_SMARTEN] = 0x0003FE00;
+    tmc->Register[REG_SGCSCONF] = 0x0003FE00;
+    tmc->Register[REG_DRVCONF] = 0x0003FE00;
+    j += sprintf(MSG+j, "VAL DRVCTRL AFTER:0x%08lX\r\n", (uint32_t)tmc->Register[REG_DRVCTRL]);
+    j += sprintf(MSG+j, "VAL REG_CHOPCONF AFTER:0x%08lX\r\n",  (uint32_t)tmc->Register[REG_CHOPCONF]);
+    j += sprintf(MSG+j, "VAL REG_SMARTEN AFTER:0x%08lX\r\n",  (uint32_t)tmc->Register[REG_SMARTEN]);
+    j += sprintf(MSG+j, "VAL REG_SGCSCONF AFTER:0x%08lX\r\n", (uint32_t)tmc->Register[REG_SGCSCONF]);
+    j += sprintf(MSG+j, "VAL REG_DRVCONF AFTER:0x%08lX\r\n", (uint32_t)tmc->Register[REG_DRVCONF]);
+    HAL_UART_Transmit(&(*huart1), (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+    WriteReadTmc2660Register(tmc,REG_DRVCTRL, hspi3, huart1);
+    //uint32_t drvconf_reg = tmc->Register[REG_DRVCTRL];
+
+    //HAL_UART_Transmit(&(*huart1), (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+//    for(i=0;i<j;i++){
+//    	MSG[i] = '\0';
+//    }
 }
 
 
-void max_coil_b(TMC2660ObjectType *tmc){
+void max_coil_b(TMC2660ObjectType *tmc,  SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1){
     tmc->Register[REG_DRVCTRL]= 0x3FEFF;
-    WriteReadTmc2660Register(tmc,REG_DRVCTRL);
+    WriteReadTmc2660Register(tmc,REG_DRVCTRL, hspi3, huart1);
 }
 
 /*Read and write registers* TMC2660RegType reg */
-void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg)
+void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1)
 {
+//	uint8_t MSG[35] = {'\0'};
     uint8_t wData[3];
     uint8_t rData[3];
     uint32_t status=0;
@@ -142,14 +183,14 @@ void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg)
    
     //tmc->ChipSelect(TMC2660CS_Enable);
     tmc->cs = TMC2660CS_Enable;
-    ChipSelect(tmc);
+    ChipSelect(tmc, huart1);
     regValue = tmc->Register[reg]&TMC2660_DRVCTRL_VAL_MASK; 
     datagram = (TMC2660_DATAGRAM(reg, regValue) & TMC2660_DATAGRAM_MASK);
     wData[0]=(uint8_t)(datagram>>16);
     wData[1]=(uint8_t)(datagram>>8);
     wData[2]=(uint8_t)datagram;
    
-    WriteRead(wData,3,rData,3);
+    WriteRead(wData,3,rData,3, hspi3, huart1);
    
     status=rData[0];
     status=(status<<8)+rData[1];
@@ -161,10 +202,10 @@ void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg)
 
     //tmc->ChipSelect(TMC2660CS_Disable);
     tmc->cs = TMC2660CS_Disable;
-    ChipSelect(tmc);
+    ChipSelect(tmc, huart1);
 }
 
-void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize){
+void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1){
     //char uart_buf[50];
     //int uart_buf_len;
     // CS pin should default high - but already set earlier
@@ -173,8 +214,8 @@ void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize){
     // Say something
     // uart_buf_len = sprintf(uart_buf, "SPI Test\r\n");
     // HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, uart_buf_len, 100);
-	SPI_HandleTypeDef hspi3;
-    HAL_SPI_TransmitReceive(&hspi3, wData, rData, wSize, 100);
+	// SPI_HandleTypeDef hspi3;
+    HAL_SPI_TransmitReceive(&(*hspi3), wData, rData, wSize, 100);
     HAL_Delay(100);
 
     // Print out status register
@@ -190,7 +231,7 @@ void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize){
 }
 
 /*TMC2660 chip select operation function*/
-void ChipSelect(TMC2660ObjectType *tmc)
+void ChipSelect(TMC2660ObjectType *tmc, UART_HandleTypeDef *huart1)
 {
     if(tmc->cs==TMC2660CS_Enable)
     {
@@ -203,11 +244,11 @@ void ChipSelect(TMC2660ObjectType *tmc)
 }
 
 void TMC_CSN_ENABLE(){
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
 }
 
 void TMC_CSN_DISABLE(){
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
 }
 
 /*Start and stop operation function*/

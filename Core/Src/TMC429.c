@@ -21,7 +21,7 @@
 	*/
 uint8_t ReadWriteSPI(SPI_HandleTypeDef *hspi1, uint8_t byte, bool last_byte){
     uint8_t rData[1];
-    HAL_SPI_TransmitReceive(hspi1, (uint8_t*)byte, rData, 1, 100);
+    HAL_SPI_TransmitReceive(hspi1, (uint8_t *)byte, rData, 1, 100);
 	//release chipselect
 	if(last_byte){
 		disableChipSelect();

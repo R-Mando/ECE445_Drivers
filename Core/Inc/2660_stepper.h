@@ -28,7 +28,7 @@ typedef struct TMC2660Object
     uint16_t *pMotorState; //motor state
 
     uint32_t status;      //TMC communication return status
-    uint32_t Register[5]; //register
+    uint32_t Register[8]; //register
     // void (*WriteRead)(uint8_t *wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
     // void (*ChipSelect)(bool cs); //Chip select signal
     // //same as void ChipSelect(bool cs)
@@ -60,11 +60,11 @@ typedef struct TMC2660Object
 //     DRVCONF;
 // } TMC26660RegType;
 /*Initialize TMC2660 object*/
-extern void Tmc2660Initialization(TMC2660ObjectType *tmc, bool interface, int microStep, uint16_t Power, uint16_t stepAngle, uint16_t *pStartStop, uint16_t *pDirection, uint16_t *pRotateSet, uint16_t *pMotorState);
+extern void Tmc2660Initialization(TMC2660ObjectType *tmc, bool interface, int microStep, uint16_t Power, uint16_t stepAngle, uint16_t *pStartStop, uint16_t *pDirection, uint16_t *pRotateSet, uint16_t *pMotorState, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
 
-extern void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg);
-void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize);
-void ChipSelect(TMC2660ObjectType *tmc);
+extern void WriteReadTmc2660Register(TMC2660ObjectType *tmc, uint8_t reg, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
+void WriteRead(uint8_t * wData, uint16_t wSize, uint8_t *rData, uint16_t rSize, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
+void ChipSelect(TMC2660ObjectType *tmc, UART_HandleTypeDef *huart1);
 void TMC_CSN_ENABLE();
 void TMC_CSN_DISABLE();
 //static void StartStop(TMC2660ObjectType *tmc);
@@ -76,10 +76,10 @@ void TMC_CSN_DISABLE();
 //void TMC_ENN_DISABLE();
 // void spi_motor_test(TMC2660ObjectType *tmc);
 
-void spi_motor_zero(TMC2660ObjectType *tmc);
+void spi_motor_zero(TMC2660ObjectType *tmc, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
 
-void max_coil_a(TMC2660ObjectType *tmc);
+void max_coil_a(TMC2660ObjectType *tmc, SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
 
-void max_coil_b(TMC2660ObjectType *tmc);
+void max_coil_b(TMC2660ObjectType *tmc,  SPI_HandleTypeDef *hspi3, UART_HandleTypeDef *huart1);
 
 #endif /* TMC_2660_STEPPER_H_*/

@@ -1,10 +1,6 @@
 {
-    "google-translate.firstLanguage": "english",
     "files.associations": {
-        "tmc2660_constants.h": "c",
-        "2660_stepper": "c",
         "main.h": "c",
-        "stm32f4xx.h": "c"
-    },
-    "C_Cpp.errorSquiggles": "Enabled"
+        "cstdio": "cpp"
+    }
 }

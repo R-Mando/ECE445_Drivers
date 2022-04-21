@@ -2,11 +2,11 @@
 #define TMC2660_REGISTER_H
 
 // addresses out auf address bits from write datagrams
-#define REG_DRVCTRL   0x00
-#define REG_CHOPCONF  0x04
-#define REG_SMARTEN   0x05
-#define REG_SGCSCONF  0x06
-#define REG_DRVCONF   0x07
+#define REG_DRVCTRL   0
+#define REG_CHOPCONF  4
+#define REG_SMARTEN   5
+#define REG_SGCSCONF  6
+#define REG_DRVCONF   7
 
 #define TMC2660_DRVCTRL_VAL_MASK    (0x0001FFFF)
 #define TMC2660_DATAGRAM_MASK       (0xFFFFF)

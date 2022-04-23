@@ -67,6 +67,8 @@ void const_vel_test_429 (uint8_t * spi_buf);
 void const_vel_test_429_pos (uint8_t * spi_buf);
 void set_motor_pos(uint32_t position, uint8_t * spi_buf);
 void read_position(uint8_t * spi_buffer, uint8_t reg);
+void read_ifx(uint8_t * spi_buf);
+void write_ifx(uint8_t * spi_buf);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -120,13 +122,13 @@ int main(void)
 
 
   uint8_t spi_buf[4];
-  SPI_2660_Init();
   SPI_429_Init(spi_buf);
-
+  SPI_2660_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // read_ifx(spi_buf);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -135,6 +137,7 @@ int main(void)
 	HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_4);
 	HAL_Delay(5);
 	set_motor_pos(1, spi_buf);
+  read_ifx(spi_buf);
 	//const_vel_test_429(spi_buf);
   //HAL_Delay(1000);
   //const_vel_test_429_pos(spi_buf);
@@ -472,7 +475,7 @@ uint8_t SPI_2660_Init(void){
 
     wData[0] = 0x0D;            // SPI = $D001F  Current setting: $d001F (max. current) (D000A = 1/3 current)
     wData[1] = 0x00;
-    wData[2] = 0x05;//0x0A;
+    wData[2] = 0x15;//0x0A;
     SPI_2660_Transmit(wData);
 
     wData[0] = 0x0E;            // SPI = $E0090  low driver strength, StallGuard2 read, SDOFF=1
@@ -579,6 +582,16 @@ uint8_t SPI_429_Init(uint8_t *spi_buf){
     //IDX:0101
     //VACTUAL: 768
 
+
+    //WRITE TO FX
+    wData[0] = 0x68;
+    wData[1] = 0x00;
+    wData[2] = 0x00;
+    wData[3] = 0x20;
+    //ENABLE step/dir mode
+
+    SPI_429_Transmit(wData, spi_buf);
+
     return 0;
     //64 micros/ full step       200 steps/ rev
 }
@@ -602,13 +615,13 @@ void read_position(uint8_t * spi_buf, uint8_t reg){
     //j += sprintf(MSG+j, "Output of target setting:0x0%lx\r\n", (uint32_t)(*spi_buf));
     //IDX:0000
     //24 bits position
-    spi_buf[0] = ((reg & 0x0F) << 1) + 1;
+    spi_buf[0] = 0x00;//((reg & 0x0F) << 1) + 1;
     spi_buf[1] = 0x00;
     spi_buf[2] = 0x00;  //HAL_UART_Transmit(&huart1, (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
     spi_buf[3] = 0x00;
 
     uint8_t rData[4];
-    rData[0] = 0x03;
+    rData[0] = (uint8_t)(((reg & 0x0F) << 1) + 1);
     rData[1] = 0x00;
     rData[2] = 0x00;
     rData[3] = 0x00;
@@ -617,6 +630,42 @@ void read_position(uint8_t * spi_buf, uint8_t reg){
     j += sprintf(MSG+j, "REGISTER:%u\n", reg);
     j += sprintf(MSG+j, "VAL_INSIDE:0x0%lx, %lx, %lx \r\n", (uint32_t)(spi_buf[1]), (uint32_t)(spi_buf[2]), (uint32_t)(spi_buf[3]));
     HAL_UART_Transmit(&huart1, (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+}
+
+void read_ifx(uint8_t * spi_buf){
+    int j;
+    j=0;
+    char MSG[500] = {'\0'};
+    //j += sprintf(MSG+j, "Output of target setting:0x0%lx\r\n", (uint32_t)(*spi_buf));
+    //IDX:0000
+    //24 bits position
+    //0110 1001 ......0 0000 0000 
+    //6     9
+    spi_buf[0] = 0x00;
+    spi_buf[1] = 0x00;
+    spi_buf[2] = 0x00;  //HAL_UART_Transmit(&huart1, (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+    spi_buf[3] = 0x00;
+
+    uint8_t rData[4];
+    rData[0] = 0x69;
+    rData[1] = 0x00;
+    rData[2] = 0x00;
+    rData[3] = 0x00;
+
+    SPI_429_Transmit(rData, spi_buf);
+    j += sprintf(MSG+j, "VAL_INSIDE IFX:0x0%lx, %lx, %lx \r\n", (uint32_t)(spi_buf[1]), (uint32_t)(spi_buf[2]), (uint32_t)(spi_buf[3]));
+    HAL_UART_Transmit(&huart1, (uint8_t *)MSG, sizeof(MSG), HAL_MAX_DELAY);
+}
+
+void write_ifx(uint8_t * spi_buf){
+
+    uint8_t wData[4];
+    wData[0] = 0x69;
+    wData[1] = 0x00;
+    wData[2] = 0x00;
+    wData[3] = 0x20;
+
+    SPI_429_Transmit(wData, spi_buf);
 }
 
 void const_vel_test_429_pos (uint8_t * spi_buf){
@@ -637,8 +686,8 @@ void set_motor_pos(uint32_t position, uint8_t * spi_buf){
 	 uint8_t wData[4];
 	 wData[0] = 0x00;
 	 wData[1] = 0x00;
-	 wData[2] = 0x19;
-	 wData[3] = 0x00;
+	 wData[2] = 0x67;
+	 wData[3] = 0x20;
 	 SPI_429_Transmit(wData, spi_buf);
 
    read_position(spi_buf, 0);
@@ -660,6 +709,8 @@ void set_motor_pos(uint32_t position, uint8_t * spi_buf){
 
 
 }
+
+
 /* USER CODE END 4 */
 
 /**
